@@ -15,16 +15,16 @@ ANSIBLE_METADATA = {
 }
 
 DOCUMENTATION = '''
-module: rubrik_dns_servers
-short_description: Configure the DNS Servers on the Rubrik cluster.
+module: rubrik_configure_ntp
+short_description: Configure connection information for the NTP servers used by the Rubrik cluster for time synchronization.
 description:
-    - Configure the DNS Servers on the Rubrik cluster.
+    - Configure connection information for the NTP servers used by the Rubrik cluster for time synchronization.
 version_added: '2.8'
 author: Rubrik Build Team (@drew-russell) <build@rubrik.com>
 options:
-  server_ip:
+  ntp_server:
     description:
-      - The DNS Server IPs you wish to add to the Rubrik cluster.
+      - A list of the NTP server(s) you wish to configure the Rubrik cluster to use.
     required: True
     type: list
   timeout:
@@ -40,23 +40,22 @@ requirements: [rubrik_cdm]
 '''
 
 EXAMPLES = '''
-- rubrik_dns_servers:
-    server_ip: ["192.168.100.20", "192.168.100.21"]
+- rubrik_configure_ntp:
+    ntp_server: ["192.168.10.121", "192.168.10.122"]
 '''
 
 
 RETURN = '''
 response:
-    description: The full API response for POST /internal/cluster/me/dns_nameserver.
+    description: A 204 status code success message.
     returned: on success
     type: dict
 
-
 response:
-    description: A "No changed required" message when
+    description: A "No changed required" message when the cluster is already configured with the provided I(ntp_servers).
     returned: When the module idempotent check is succesful.
     type: str
-    sample: No change required. The Rubrik cluster is already configured with the provided DNS servers.
+    sample: No change required. The NTP server(s) I(ntp_server) has already been added to the Rubrik cluster.
 '''
 
 
@@ -74,7 +73,7 @@ def main():
     results = {}
 
     argument_spec = dict(
-        server_ip=dict(required=True, type='list'),
+        ntp_servers=dict(required=True, type='list'),
         timeout=dict(required=False, type='int', default=15),
 
     )
@@ -98,7 +97,7 @@ def main():
         module.fail_json(msg=str(error))
 
     try:
-        api_request = rubrik.configure_dns_servers(ansible["server_ip"], ansible["timeout"])
+        api_request = rubrik.configure_ntp(ansible["ntp_servers"], ansible["timeout"])
     except Exception as error:
         module.fail_json(msg=str(error))
 

@@ -5,7 +5,7 @@
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
-from ansible.module_utils.rubrik_cdm import credentials, load_provider_variables, rubrik_argument_spec
+from module_utils.rubrik_cdm import credentials, load_provider_variables, rubrik_argument_spec
 from ansible.module_utils.basic import AnsibleModule
 
 
@@ -156,7 +156,7 @@ def main():
     if not HAS_RUBRIK_SDK:
         module.fail_json(msg='The Rubrik Python SDK is required for this module (pip install rubrik_cdm).')
 
-    node_ip, username, password = credentials(module)
+    node_ip, username, password, api_token = credentials(module)
 
     try:
         rubrik = rubrik_cdm.Bootstrap(node_ip)

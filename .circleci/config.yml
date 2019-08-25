@@ -1,0 +1,23 @@
+version: 2.0
+
+jobs:
+
+ python-3.7:
+    docker:
+      - image: circleci/python:3.7.3
+    working_directory: ~/rubrik-modules-for-ansible
+    steps:
+      - checkout
+      - run:
+          name: Install Dependencies
+          command: |
+            sudo pip install pylint requests python-dateutil pytz coverage pytest-cov pytest-mock tox pep8 autopep8 rubrik_cdm ansible mazer
+      - run:
+          name: Execute Unit Tests
+          command: |
+            python -m unittest discover -s ./test
+workflows:
+  version: 2
+  build:
+    jobs:
+      - python-3.7

@@ -1,12 +1,12 @@
 #!/usr/bin/python
-# Copyright: Rubrik
-# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# (c) 2018 Rubrik, Inc
+# GNU General Public License v3.0+ (see COPYING or
+# https://www.gnu.org/licenses/gpl-3.0.txt)
 from __future__ import absolute_import, division, print_function
 __metaclass__ = type
 
 from module_utils.rubrik_cdm import credentials, load_provider_variables, rubrik_argument_spec
 from ansible.module_utils.basic import AnsibleModule
-
 
 ANSIBLE_METADATA = {
     'metadata_version': '1.1',
@@ -15,48 +15,63 @@ ANSIBLE_METADATA = {
 }
 
 DOCUMENTATION = '''
-module: rubrik_dns_servers
-short_description: Configure the DNS Servers on the Rubrik cluster.
+module: rubrik_sql_live_unmount
+short_description: Delete a Microsoft SQL Live Mount from the Rubrik cluster.
 description:
-    - Configure the DNS Servers on the Rubrik cluster.
+    - Delete a Microsoft SQL Live Mount from the Rubrik cluster.
 version_added: '2.8'
 author: Rubrik Build Team (@drew-russell) <build@rubrik.com>
 options:
-  server_ip:
+  mounted_db_name:
     description:
-      - The DNS Server IPs you wish to add to the Rubrik cluster.
+      - The name of the Live Mounted database to be unmounted.
     required: True
-    type: list
+    type: str
+  sql_instance:
+    description:
+      - The name of the MSSQL instance managing the Live Mounted database to be unmounted.
+    required: True
+    type: str
+    default: None
+  sql_host:
+    description:
+      - The name of the MSSQL host running the Live Mounted database to be unmounted.
+    required: True
+    type: str
+    default: None
+  force:
+    description:
+      - Remove all data within the Rubrik cluster related to the Live Mount, even if the SQL Server database cannot be contacted.
+    required: False
+    type: bool
+    default: False
   timeout:
     description:
       - The number of seconds to wait to establish a connection the Rubrik cluster before returning a timeout error.
     required: False
     type: int
-    default: 15
+    default: 30
 
 extends_documentation_fragment:
     - rubrik_cdm
 requirements: [rubrik_cdm]
 '''
 
+
 EXAMPLES = '''
-- rubrik_dns_servers:
-    server_ip: ["192.168.100.20", "192.168.100.21"]
+- rubrik_sql_live_mount:
+    mounted_db_name: 'AdventureWorks2016'
+    sql_instance: 'MSSQLSERVER'
+    sql_host: 'sql.rubrikdemo.com'
+    force: True
 '''
 
 
 RETURN = '''
-response:
-    description: The full API response for POST /internal/cluster/me/dns_nameserver.
-    returned: on success
+version:
+    description: The full response of `DELETE /mssql/db/mount/{id}?force={bool}`.
+    returned: success
     type: dict
-
-
-response:
-    description: A "No changed required" message when
-    returned: When the module idempotent check is succesful.
-    type: str
-    sample: No change required. The Rubrik cluster is already configured with the provided DNS servers.
 '''
 
 
@@ -74,8 +89,11 @@ def main():
     results = {}
 
     argument_spec = dict(
-        server_ip=dict(required=True, type='list'),
-        timeout=dict(required=False, type='int', default=15),
+        mounted_db_name=dict(required=True, type='str'),
+        sql_instance=dict(required=True, type='str', default=None),
+        sql_host=dict(required=True, type='str', default=None),
+        force=dict(required=False, type='bool', default=False),
+        timeout=dict(required=False, type='int', default=30),
 
     )
 
@@ -98,14 +116,14 @@ def main():
         module.fail_json(msg=str(error))
 
     try:
-        api_request = rubrik.configure_dns_servers(ansible["server_ip"], ansible["timeout"])
+        api_request = rubrik.sql_live_unmount(
+            ansible["mounted_db_name"],
+            ansible["sql_instance"],
+            ansible["sql_host"],
+            ansible["force"],
+            ansible["timeout"])
     except Exception as error:
         module.fail_json(msg=str(error))
-
-    if "No change required" in api_request:
-        results["changed"] = False
-    else:
-        results["changed"] = True
 
     results["response"] = api_request
 
