@@ -200,6 +200,7 @@ class TestRubrikBootstrap(unittest.TestCase):
         self.assertEqual(result.exception.args[0]['changed'], False)
         self.assertEqual(result.exception.args[0]['response']['status'], 'SUCCESS')
 
+    ###
     @patch.object(rubrik_bootstrap.rubrik_cdm.rubrik_cdm.time, 'sleep', autospec=True, spec_set=True)
     @patch.object(rubrik_bootstrap.rubrik_cdm.rubrik_cdm.Bootstrap, 'post', autospec=True, spec_set=True)
     @patch.object(rubrik_bootstrap.rubrik_cdm.rubrik_cdm.Bootstrap, '__init__', autospec=True, spec_set=True)
@@ -240,7 +241,8 @@ class TestRubrikBootstrap(unittest.TestCase):
 
         self.assertEqual(result.exception.args[0]['failed'], True)
         self.assertEqual(result.exception.args[0]['msg'], 'Unable to establish a connection to the Rubrik cluster.')
-
+    ###
+    
     @patch.object(rubrik_bootstrap.rubrik_cdm.rubrik_cdm.socket, 'getaddrinfo', autospec=True, spec_set=True)
     @patch.object(rubrik_bootstrap.rubrik_cdm.rubrik_cdm.Bootstrap, 'post', autospec=True, spec_set=True)
     def test_module_fail_resolution_failure(self, mock_post, mock_getaddrinfo):
